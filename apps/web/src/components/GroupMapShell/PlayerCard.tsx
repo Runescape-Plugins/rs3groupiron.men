@@ -164,7 +164,11 @@ export const PlayerCard = memo(function PlayerCard({
             aria-hidden
           />
           <span className="gms-player-name">{player.displayName}</span>
-          <Presence online={player.online} world={player.world} />
+          <Presence
+            online={player.online}
+            inLobby={player.inLobby}
+            world={player.world}
+          />
         </div>
 
         <span className="gms-player-seen">
@@ -330,16 +334,33 @@ function formatLastSeen(iso: string) {
   return Number.isNaN(d.getTime()) ? '—' : LAST_SEEN_FMT.format(d);
 }
 
-function Presence({ online, world }: { online: boolean; world: number }) {
-  const known = online && world > 0;
-  const title = online ? (known ? `Online — world ${world}` : 'Online') : 'Offline';
+function Presence({
+  online,
+  inLobby,
+  world,
+}: {
+  online: boolean;
+  inLobby: boolean;
+  world: number;
+}) {
+  // The lobby has no world, so the world slot keeps whatever was last seen
+  // in-game. Showing it next to "lobby" would read as still being there.
+  const lobby = online && inLobby;
+  const known = online && !lobby && world > 0;
+
+  const state = lobby ? 'lobby' : online ? 'online' : 'offline';
+  const label = lobby ? 'LOBBY' : online ? (known ? `W${world}` : 'ONLINE') : 'OFFLINE';
+  const title = lobby
+    ? 'In the lobby'
+    : online
+      ? known
+        ? `Online — world ${world}`
+        : 'Online'
+      : 'Offline';
 
   return (
-    <span
-      className={`gms-player-status gms-player-status--${online ? 'online' : 'offline'}`}
-      title={title}
-    >
-      {online ? 'ONLINE' : 'OFFLINE'}
+    <span className={`gms-player-status gms-player-status--${state}`} title={title}>
+      {label}
     </span>
   );
 }

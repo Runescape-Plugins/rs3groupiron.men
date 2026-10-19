@@ -267,6 +267,11 @@
   color: var(--ok);
 }
 
+.gms-player-status--lobby {
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--line2));
+  color: var(--gold);
+}
+
 .gms-player-seen {
   margin-top: -4px;
   font-size: 12px;
