@@ -193,14 +193,7 @@ export const PlayerCard = memo(function PlayerCard({
           </div>
         )}
 
-        {tracked &&
-          (player.target ? (
-            <TargetBar target={player.target} />
-          ) : (
-            <div className="gms-target gms-target--none">
-              <span className="gms-target-name">No Target</span>
-            </div>
-          ))}
+        {tracked && <TargetBar target={player.target ?? null} />}
       </div>
 
       {tracked && (
@@ -310,8 +303,21 @@ function ClockIcon() {
 function TargetBar({
   target,
 }: {
-  target: { name: string; hp: number | null; percent: number | null };
+  target: { name: string; hp: number | null; percent: number | null } | null;
 }) {
+  if (!target) {
+    return (
+      <div className="gms-target gms-target--none" title="No target">
+        <div className="gms-target-row">
+          <span className="gms-target-name">No Target</span>
+        </div>
+        <div className="gms-target-track">
+          <div className="gms-target-fill" style={{ width: '0%' }} />
+        </div>
+      </div>
+    );
+  }
+
   const width = target.percent === null ? 100 : Math.max(0, Math.min(100, target.percent));
   return (
     <div
