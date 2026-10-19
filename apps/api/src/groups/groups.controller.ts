@@ -44,6 +44,7 @@ import {
   UpdateMemberQuestsBody,
   PlayerMovedBody,
   SetLocationSharingBody,
+  SyncGroupModeBody,
   SetTargetBody,
   SetMemberOnlineBody,
 } from './group.types';
@@ -404,6 +405,17 @@ export class GroupsAuthedController {
     @Body() body: SetTargetBody,
   ) {
     return this.groups.setTarget(groupName, authorization, body);
+  }
+
+  /** The plugin syncing the group's ruleset from the account's varbits. */
+  @Post('sync-group-mode')
+  @HttpCode(200)
+  syncGroupMode(
+    @Param('groupName') groupName: string,
+    @Headers('authorization') authorization: string | undefined,
+    @Body() body: SyncGroupModeBody,
+  ) {
+    return this.groups.syncGroupMode(groupName, authorization, body);
   }
 
   /** Opt a member in or out of the live map. */

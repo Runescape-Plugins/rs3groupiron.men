@@ -132,11 +132,6 @@ export class CreateGroupBody {
   @MaxLength(MAX_INPUT_NAME)
   name!: string;
 
-  /** normal | competitive — defaults to normal */
-  @IsOptional()
-  @IsIn(['normal', 'competitive'])
-  mode?: 'normal' | 'competitive';
-
   @IsOptional()
   @IsIn(['private', 'public'])
   visibility?: 'private' | 'public';
@@ -365,6 +360,15 @@ export class SetMemberOnlineBody {
 }
 
 /** Opt this member in or out of the live map. */
+/**
+ * The plugin reporting the ruleset it read from the account's varbits, so the
+ * group's mode follows the game rather than being picked by hand.
+ */
+export class SyncGroupModeBody {
+  @IsIn(['normal', 'competitive'])
+  mode!: 'normal' | 'competitive';
+}
+
 export class SetLocationSharingBody {
   @IsString()
   @MaxLength(MAX_INPUT_NAME)
@@ -546,10 +550,6 @@ export class UpdateGroupSettingsBody {
   @IsOptional()
   @IsIn(['rs3', 'modern'])
   appearance?: 'rs3' | 'modern';
-
-  @IsOptional()
-  @IsIn(['normal', 'competitive'])
-  mode?: 'normal' | 'competitive';
 
   /** Rename the group (unique). */
   @IsOptional()

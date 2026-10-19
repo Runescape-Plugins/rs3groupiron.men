@@ -103,6 +103,7 @@ import {
   SetLocationSharingBody,
   SetTargetBody,
   SetMemberOnlineBody,
+  SyncGroupModeBody,
   type SkillPayloadValue,
   UpdateGroupSettingsBody,
   UpdateMemberAchievementsBody,
@@ -283,7 +284,6 @@ export class GroupsService {
       );
     }
 
-    const mode = parseGroupMode(body.mode);
     const visibility = parseVisibility(body.visibility);
     const shares = sharesToColumns(body.shares);
     const token = randomUUID();
@@ -296,7 +296,6 @@ export class GroupsService {
           name,
           nameKey: groupNameKey(name),
           token,
-          mode,
           appearance: AppearanceTheme.rs3,
           memberSlots: slots,
           visibility,
@@ -322,7 +321,7 @@ export class GroupsService {
 
     return {
       name,
-      mode,
+      mode: GroupMode.normal,
       appearance: 'rs3' as const,
       member_slots: slots,
       member_names: memberNames,
@@ -1913,6 +1912,32 @@ export class GroupsService {
     };
   }
 
+  /**
+   * The plugin reports the ruleset it read from the account rather than the
+   * group picking one by hand. Writes nothing when it already matches, so a
+   * login by every member does not churn the row or wake every viewer.
+   */
+  async syncGroupMode(
+    groupName: string,
+    token: string | undefined,
+    body: SyncGroupModeBody,
+  ) {
+    const group = await this.access.write(groupName, token);
+    const mode = parseGroupMode(body.mode);
+
+    if (group.mode === mode) {
+      return { ok: true, mode, changed: false };
+    }
+
+    await this.prisma.group.update({
+      where: { id: group.id },
+      data: { mode },
+    });
+
+    this.notifyChanged(group.id);
+    return { ok: true, mode, changed: true };
+  }
+
   async setMemberOnline(
     groupName: string,
     token: string | undefined,
@@ -2076,7 +2101,6 @@ export class GroupsService {
       publicAchievements?: boolean;
     } = { ...sharesPatch(body.shares) };
     if (body.appearance) data.appearance = parseAppearance(body.appearance);
-    if (body.mode) data.mode = parseGroupMode(body.mode);
     if (body.visibility) data.visibility = parseVisibility(body.visibility);
 
     if (body.name !== undefined) {

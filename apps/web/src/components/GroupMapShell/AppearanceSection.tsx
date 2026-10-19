@@ -1,4 +1,3 @@
-import type { GroupMode } from '../../api/groupClient';
 import {
   PANEL_OPACITY_MAX,
   PANEL_OPACITY_MIN,
@@ -21,12 +20,6 @@ type AppearanceSectionProps = {
   onSelectNavHide: (hide: boolean) => void;
   onSelectMapBg: (on: boolean) => void;
   onPanelOpacityChange: (value: number) => void;
-};
-
-type ModeSectionProps = {
-  groupMode: GroupMode;
-  busy: boolean;
-  onSelectMode: (mode: GroupMode) => void;
 };
 
 const THEMES = [
@@ -54,21 +47,6 @@ const OFF_ON = [
   { id: 'on', label: 'On' },
   { id: 'off', label: 'Off' },
 ] as const;
-
-const MODE_CARDS: Array<{ id: GroupMode; label: string; sub: string; icon: string }> = [
-  {
-    id: 'normal',
-    label: 'Normal',
-    sub: 'Shared bank, shared progress',
-    icon: '/group-modes/normal.webp',
-  },
-  {
-    id: 'competitive',
-    label: 'Competitive',
-    sub: 'Race each other on XP',
-    icon: '/group-modes/competitive.webp',
-  },
-];
 
 export function AppearanceSection({
   theme,
@@ -153,43 +131,6 @@ export function AppearanceSection({
           <span className="gms-settings-note">Solid</span>
           <span className="gms-settings-opacity-value">{panelOpacity}%</span>
         </div>
-      </div>
-    </section>
-  );
-}
-
-export function GroupModeSection({ groupMode, busy, onSelectMode }: ModeSectionProps) {
-  return (
-    <section className="gms-panel gms-settings-card">
-      <div className="gms-settings-card-head">
-        <h2 className="gms-section-title">Group mode</h2>
-        <span className="gms-settings-hint">
-          Competitive hides other members’ banks and ranks everyone on XP.
-        </span>
-      </div>
-
-      <div className="gms-settings-modes" role="radiogroup" aria-label="Group mode">
-        {MODE_CARDS.map((card) => {
-          const active = card.id === groupMode;
-          return (
-            <button
-              key={card.id}
-              type="button"
-              role="radio"
-              aria-checked={active}
-              disabled={busy}
-              className={active ? 'gms-mode-card gms-mode-card--active' : 'gms-mode-card'}
-              onClick={() => onSelectMode(card.id)}
-            >
-              <span className="gms-mode-radio" aria-hidden />
-              <img src={card.icon} alt="" width={26} height={26} loading="lazy" />
-              <span className="gms-mode-text">
-                <strong>{card.label}</strong>
-                <em>{card.sub}</em>
-              </span>
-            </button>
-          );
-        })}
       </div>
     </section>
   );

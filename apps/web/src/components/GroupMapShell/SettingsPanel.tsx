@@ -10,7 +10,6 @@ import {
   updateGroupSettings,
   updateMemberProfile,
   type GroupDeletion,
-  type GroupMode,
   type GroupShares,
   type GroupVisibility,
 } from '../../api/groupClient';
@@ -19,7 +18,7 @@ import { errorMessage } from '../../lib/errors';
 import type { PlayerView } from '../../lib/items';
 import { useAsyncAction } from '../../hooks/useAsyncAction';
 import { AddMemberModal } from './AddMemberModal';
-import { AppearanceSection, GroupModeSection } from './AppearanceSection';
+import { AppearanceSection } from './AppearanceSection';
 import { DataSection } from './DataSection';
 import { DeleteGroupModal } from './DeleteGroupModal';
 import type { LayoutDir, ThemePref } from '../../lib/uiPrefs';
@@ -42,7 +41,6 @@ type SettingsPanelProps = {
   navFull: boolean;
   navHide: boolean;
   mapBg: boolean;
-  groupMode: GroupMode;
   visibility: GroupVisibility;
   shares: GroupShares;
   deletion: GroupDeletion | null;
@@ -54,7 +52,6 @@ type SettingsPanelProps = {
   onNavFullChange: (full: boolean) => void;
   onNavHideChange: (hide: boolean) => void;
   onMapBgChange: (on: boolean) => void;
-  onModeChange: (mode: GroupMode) => void;
   onVisibilityChange: (visibility: GroupVisibility) => void;
   onSharesChange: (shares: GroupShares) => void;
   onOpenSetup: () => void;
@@ -70,7 +67,6 @@ export function SettingsPanel({
   navFull,
   navHide,
   mapBg,
-  groupMode,
   visibility,
   shares,
   deletion,
@@ -82,7 +78,6 @@ export function SettingsPanel({
   onNavFullChange,
   onNavHideChange,
   onMapBgChange,
-  onModeChange,
   onVisibilityChange,
   onSharesChange,
   onOpenSetup,
@@ -281,17 +276,6 @@ export function SettingsPanel({
         }
       />
 
-      <GroupModeSection
-        groupMode={groupMode}
-        busy={isBusy}
-        onSelectMode={(mode) =>
-          save(`mode-${mode}`, async () => {
-            const info = await updateGroupSettings(groupName, groupToken, { mode });
-            onModeChange(info.mode);
-            setMessage(`Mode set to ${mode === 'normal' ? 'Normal' : 'Competitive'}`);
-          })
-        }
-      />
 
       <DataSection
         deletion={deletion}

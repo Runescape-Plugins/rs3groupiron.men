@@ -2,7 +2,6 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   createGroup,
-  type GroupMode,
   type GroupShares,
   type GroupVisibility,
 } from '../api/groupClient';
@@ -27,11 +26,6 @@ function emptyMembers(size: number): MemberField[] {
 }
 
 const SLOT_OPTIONS = Array.from({ length: MAX_SLOTS - MIN_SLOTS + 1 }, (_, i) => MIN_SLOTS + i);
-
-const MODES: Array<{ id: GroupMode; label: string; icon: string }> = [
-  { id: 'normal', label: 'Normal', icon: '/group-modes/normal.webp' },
-  { id: 'competitive', label: 'Comp', icon: '/group-modes/competitive.webp' },
-];
 
 const VISIBILITIES: Array<{
   id: GroupVisibility;
@@ -70,7 +64,6 @@ export function GetStartedPage() {
   const formTheme = useFormTheme();
   const [name, setName] = useState('');
   const [slots, setSlots] = useState(MIN_SLOTS);
-  const [mode, setMode] = useState<GroupMode>('normal');
   const [visibility, setVisibility] = useState<GroupVisibility>('private');
   const [shares, setShares] = useState<GroupShares>(DEFAULT_SHARES);
   const [members, setMembers] = useState(() => emptyMembers(MIN_SLOTS));
@@ -131,7 +124,6 @@ export function GetStartedPage() {
     await run('create', async () => {
       const result = await createGroup({
         name: name.trim(),
-        mode,
         member_slots: slots,
         member_names: memberNames,
         visibility,
@@ -237,13 +229,11 @@ export function GetStartedPage() {
                 error={error}
                 name={name}
                 slots={slots}
-                mode={mode}
                 visibility={visibility}
                 members={members}
                 ready={detailsReady}
                 onName={setName}
                 onSlots={setSlotCount}
-                onMode={setMode}
                 onVisibility={setVisibility}
                 onMemberName={setMemberName}
               />
@@ -273,13 +263,11 @@ type DetailsPageProps = {
   error: string | null;
   name: string;
   slots: number;
-  mode: GroupMode;
   visibility: GroupVisibility;
   members: MemberField[];
   ready: boolean;
   onName: (value: string) => void;
   onSlots: (value: number) => void;
-  onMode: (mode: GroupMode) => void;
   onVisibility: (visibility: GroupVisibility) => void;
   onMemberName: (id: number, value: string) => void;
 };
@@ -289,13 +277,11 @@ function DetailsPage({
   error,
   name,
   slots,
-  mode,
   visibility,
   members,
   ready,
   onName,
   onSlots,
-  onMode,
   onVisibility,
   onMemberName,
 }: DetailsPageProps) {
@@ -316,22 +302,6 @@ function DetailsPage({
             placeholder={`1–${MAX_NAME} characters`}
             onChange={onName}
           />
-
-          <div className="hero-seg" role="radiogroup" aria-label="Group mode">
-            {MODES.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="radio"
-                aria-checked={mode === option.id}
-                disabled={busy}
-                onClick={() => onMode(option.id)}
-              >
-                <img src={option.icon} alt="" width={18} height={18} />
-                {option.label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 

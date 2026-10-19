@@ -11,7 +11,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import {
   DEMO_GROUP,
-  type GroupMode,
   type GroupShares,
   type GroupVisibility,
 } from '../../api/groupClient';
@@ -134,7 +133,6 @@ export function GroupMapShell({
   const [groupToken, setGroupToken] = useState(boot.token);
   const [setupOpen, setSetupOpen] = useState(false);
   const [displayName, setDisplayName] = useState(boot.name);
-  const [groupMode, setGroupMode] = useState<GroupMode>('normal');
   const [visibility, setVisibility] = useState<GroupVisibility>('private');
   const [shares, setShares] = useState<GroupShares>(ALL_SHARED);
   const [membersCollapsed, setMembersCollapsed] = useState(false);
@@ -196,7 +194,6 @@ export function GroupMapShell({
   useEffect(() => {
     if (!info) return;
     setDisplayName(info.name);
-    setGroupMode(info.mode);
     setVisibility(info.visibility ?? 'private');
     setShares(info.shares ?? ALL_SHARED);
   }, [info]);
@@ -518,7 +515,6 @@ export function GroupMapShell({
               navFull={prefs.navFull}
               navHide={prefs.navHide}
               mapBg={prefs.mapBg}
-              groupMode={groupMode}
               visibility={visibility}
               shares={shares}
               deletion={info?.deletion ?? null}
@@ -529,7 +525,6 @@ export function GroupMapShell({
               onNavFullChange={(next) => setPref('navFull', next)}
               onNavHideChange={(next) => setPref('navHide', next)}
               onMapBgChange={(next) => setPref('mapBg', next)}
-              onModeChange={setGroupMode}
               onVisibilityChange={setVisibility}
               onSharesChange={setShares}
               onChanged={() => void refresh()}

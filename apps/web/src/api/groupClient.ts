@@ -579,7 +579,6 @@ export async function updateGroupSettings(
   token: string,
   body: {
     appearance?: AppearanceTheme;
-    mode?: GroupMode;
     name?: string;
     visibility?: GroupVisibility;
     shares?: Partial<GroupShares>;
@@ -680,7 +679,6 @@ export type CreateGroupResult = {
 
 export async function createGroup(body: {
   name: string;
-  mode: GroupMode;
   member_slots: number;
   member_names: string[];
   visibility?: GroupVisibility;
