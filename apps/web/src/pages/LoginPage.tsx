@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { fetchGroupInfo } from '../api/groupClient';
 import { AuthError, AuthHeader, CountedField } from '../components/AuthFields';
 import { DiscoverLink } from '../components/DiscoverLink';
+import { LegalFooter } from '../components/LegalFooter';
 import { MarketingLayout, useFormTheme } from '../components/MarketingLayout';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { MAX_NAME, PAGE_SEO } from '../lib/constants';
@@ -111,6 +112,8 @@ export function LoginPage() {
         <p className="hero-foot">
           New here? <Link to="/get-started">Create a group</Link>
         </p>
+
+        <LegalFooter />
       </div>
     </MarketingLayout>
   );

@@ -86,7 +86,7 @@ copy.
 | `SSH_PORT` | only if not 22 |
 
 Plus any variable from `apps/api/.env.example` you want set — at minimum
-`CORS_ORIGINS`, `CDN_BASE_URL`, the four `R2_*` values, and the `OTEL_*` ones.
+`CORS_ORIGINS`, `CDN_BASE_URL` and the four `R2_*` values.
 
 **Variables** (not secrets):
 
@@ -285,7 +285,7 @@ The report spans whatever `logrotate` is keeping, because the job reads rotated
 |---|---|
 | Total requests, status codes, bandwidth, geography | **Cloudflare dashboard** — free, already collecting |
 | Which endpoints are hot, which are failing, response times | **GoAccess**, above |
-| Why a specific request was slow (span breakdown) | **Grafana Cloud** traces |
+| How long the server itself took on a request | the `X-Response-Time-Ms` and `Server-Timing` headers, set by `ServerTimingInterceptor` |
 | Slow queries, call counts, row volumes | `pg_stat_statements` (see below) |
 | Latency as a user experiences it | `tools/perf/perf.mjs` |
 

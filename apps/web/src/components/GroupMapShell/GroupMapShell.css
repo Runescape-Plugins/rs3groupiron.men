@@ -2044,6 +2044,54 @@
   cursor: default;
 }
 
+/* —— Erasure —— */
+.gms-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.gms-danger-list {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.gms-danger-note {
+  margin: 0;
+  color: var(--emberText);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gms-danger-pending {
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--emberText) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--emberText) 10%, var(--surface2));
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.gms-danger-pending strong {
+  color: var(--emberText);
+}
+
+.gms-modal--danger .gms-modal-head {
+  border-bottom-color: color-mix(in srgb, var(--emberText) 45%, transparent);
+}
+
+.gms-modal--danger .gms-modal-head h3 {
+  color: var(--emberText);
+}
+
 .gms-settings-appearance,
 .gms-settings-modes {
   display: flex;

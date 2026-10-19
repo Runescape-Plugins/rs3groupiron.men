@@ -1,7 +1,3 @@
-// Must stay the first import: the OpenTelemetry instrumentations patch http,
-// express, @nestjs/core and @prisma/client as those modules are required, so
-// anything imported above this line is never traced. Do not sort it down.
-import './instrumentation';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';

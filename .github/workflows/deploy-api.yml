@@ -113,15 +113,6 @@ jobs:
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
           R2_BACKUP_BUCKET: ${{ secrets.R2_BACKUP_BUCKET }}
-          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
-          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
-          OTEL_EXPORTER_OTLP_PROTOCOL: ${{ secrets.OTEL_EXPORTER_OTLP_PROTOCOL }}
-          OTEL_SERVICE_NAME: ${{ secrets.OTEL_SERVICE_NAME }}
-          OTEL_SERVICE_VERSION: ${{ github.sha }}
-          OTEL_TRACES_SAMPLER: ${{ secrets.OTEL_TRACES_SAMPLER }}
-          OTEL_TRACES_SAMPLER_ARG: ${{ secrets.OTEL_TRACES_SAMPLER_ARG }}
-          OTEL_METRIC_EXPORT_INTERVAL: ${{ secrets.OTEL_METRIC_EXPORT_INTERVAL }}
-          OTEL_LOG_LEVEL: ${{ secrets.OTEL_LOG_LEVEL }}
         run: |
           set -euo pipefail
           node deploy/render-env.mjs apps/api/.env.example rendered.env

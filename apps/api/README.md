@@ -26,7 +26,6 @@ pnpm --filter @rs3/api lint
 | `src/groups/group-events.service.ts` | SSE fan-out to connected browsers |
 | `src/gamevals/` | RS3 cache dumps (item/quest/var names) |
 | `src/uploads/` | presigned R2 URLs for achievement screenshots |
-| `src/instrumentation.ts` | OpenTelemetry; inert unless an OTLP endpoint is set |
 | `prisma/` | schema and migrations |
 
 ## Auth
@@ -101,6 +100,59 @@ bank.
 `GET /group/:name/events` is the same data over SSE — a snapshot on connect,
 then `split`-style deltas pushed as the group changes. The website uses it; the
 plugin does not need to.
+
+## Export
+
+`GET /group/:name/export` returns the group's current state as one JSON
+document — settings, members, skills, inventories, bank contents, quest and
+achievement progress, kill counts, drop rules, view days.
+
+`GET /group/:name/export.zip` adds the three append-only series as NDJSON
+(`bank-ledger`, `achievement-feed`, `xp-samples`), with a `README.txt`
+explaining the layout. Any achievement screenshots are added under
+`screenshots/<kind>/` — nothing uploads one today, so in practice that folder
+and its section of the README are absent.
+
+Both need the token and are throttled — 6/min and 5/5min — which is the only
+place the authed controller opts into the throttler.
+
+Neither export contains the group token.
+
+The archive is streamed by `common/zip.ts`, a dependency-free ZIP writer:
+entries go out as they are added and only the central directory is retained, so
+a group with hundreds of screenshots never has to be buffered. It emits no
+ZIP64, so it refuses past 2 GB. The series are read in pages of 5000 by id
+cursor; screenshots are pulled from R2 one at a time and stored uncompressed,
+PNG being compressed already.
+
+## Erasure
+
+`POST /group/:name/request-deletion` schedules the group and everything
+cascading from it for deletion. It takes the group name and token *again* in the
+body — `confirm_name` and `confirm_token` — on top of the `Authorization`
+header, so a saved browser session cannot start it on its own. Re-requesting
+never pushes the date back.
+
+```
+POST /api/group/<name>/request-deletion
+  Authorization: <group token>
+  { "confirm_name": "<name>", "confirm_token": "<group token>" }
+->
+  { "ok": true, "pending": true, "requested_at": "...",
+    "delete_after": "...", "grace_days": 5 }
+```
+
+`POST /group/:name/cancel-deletion` clears it, and needs only the token: it is
+the safe direction. `am-i-logged-in` carries the same block as `deletion` for
+token-holding callers, so a client learns the date without a second request.
+
+`GroupPurgeService` sweeps hourly and once on boot, deleting the group's R2
+objects and then the row. `GROUP_PURGE_DISABLED=1` turns it off and
+`GROUP_PURGE_SWEEP_MS` changes the interval; it never runs under
+`NODE_ENV=test`. The demo group is rejected like any other write.
+
+Retention, the published policies and the Jagex submission checklist are in
+[`docs/data-protection.md`](../../docs/data-protection.md).
 
 ## Deploying
 

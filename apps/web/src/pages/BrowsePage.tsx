@@ -6,6 +6,7 @@ import {
   type LeaderboardEntry,
   type PublicGroup,
 } from '../api/groupClient';
+import { LegalFooter } from '../components/LegalFooter';
 import { MarketingLayout, useFormTheme } from '../components/MarketingLayout';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { MAX_NAME, PAGE_SEO, SITE_NAME } from '../lib/constants';
@@ -84,6 +85,8 @@ export function BrowsePage() {
           {}
           {searching ? <Results query={query} /> : <Boards />}
         </div>
+
+        <LegalFooter />
       </div>
     </MarketingLayout>
   );

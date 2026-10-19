@@ -7,8 +7,8 @@
  * here never takes traffic.
  *
  * Infrastructure config stays where its owner reads it — Prisma takes
- * DATABASE_URL, the OpenTelemetry SDK reads its own OTEL_* contract, R2 has
- * readR2Config(). This module is for what the application itself branches on.
+ * DATABASE_URL, R2 has readR2Config(). This module is for what the application
+ * itself branches on.
  */
 
 export function isProduction(): boolean {

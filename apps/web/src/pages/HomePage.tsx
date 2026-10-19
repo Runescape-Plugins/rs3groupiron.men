@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { DiscoverLink } from '../components/DiscoverLink';
+import { LegalFooter } from '../components/LegalFooter';
 import { MarketingLayout } from '../components/MarketingLayout';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { COFFEE_URL, DISCORD_URL, SITE_NAME } from '../lib/constants';
@@ -57,6 +58,8 @@ export function HomePage() {
             Buy me a coffee ↗
           </a>
         </div>
+
+        <LegalFooter />
       </div>
     </MarketingLayout>
   );

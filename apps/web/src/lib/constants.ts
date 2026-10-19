@@ -29,6 +29,9 @@ export const PAGE_SEO = {
   },
 } as const;
 
+/** Days between an erasure request and the purge; mirrors the API constant. */
+export const DELETION_GRACE_DAYS = 5;
+
 /** Max length for group names and RuneScape usernames. */
 export const MAX_NAME = 16;
 export const MIN_SLOTS = 2;

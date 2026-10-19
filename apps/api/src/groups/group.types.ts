@@ -567,6 +567,16 @@ export class UpdateGroupSettingsBody {
   shares?: GroupSharesInput;
 }
 
+export class ConfirmGroupDeletionBody {
+  @IsString()
+  @MaxLength(MAX_INPUT_NAME)
+  confirm_name!: string;
+
+  @IsString()
+  @MaxLength(200)
+  confirm_token!: string;
+}
+
 export const MAX_SEARCH_QUERY = 50;
 export const PUBLIC_GROUPS_LIMIT = 24;
 export const MAX_PUBLIC_GROUPS_LIMIT = 50;

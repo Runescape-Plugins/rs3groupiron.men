@@ -281,6 +281,38 @@
   color: var(--goldLink);
 }
 
+.hero-consent {
+  margin: 14px 0 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--dim);
+}
+
+.hero-consent a {
+  color: var(--goldLink);
+}
+
+/* The policy strip sits under whatever links a page already had, so it reads as
+   a footer rather than a second row of calls to action. */
+.legal-strip {
+  margin-top: 14px;
+  gap: 14px;
+}
+
+.dsc > .legal-strip {
+  margin-top: 30px;
+}
+
+.legal-strip a {
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.legal-strip a:hover {
+  color: var(--goldLink);
+}
+
 /* ——— Form card ——— */
 
 .hero-card {

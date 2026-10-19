@@ -20,6 +20,10 @@ STATS_PORT=8081
 # every 5s on its own; this only governs the request panels, which are a
 # full re-parse of the access log.
 STATS_INTERVAL="${STATS_INTERVAL:-3min}"
+# Days of nginx access log kept. This number is published in the privacy
+# notice, so changing it here means changing it there too — see
+# docs/data-protection.md.
+LOG_RETENTION_DAYS="${LOG_RETENTION_DAYS:-14}"
 # GoAccess built-in theme: darkBlue | darkPurple | darkGray | bright.
 # The gear icon in the report switches it per-browser; this sets the default.
 STATS_THEME="${STATS_THEME:-darkBlue}"
@@ -143,6 +147,51 @@ server {
 EOF
 ln -sf /etc/nginx/sites-available/rs3-api /etc/nginx/sites-enabled/rs3-api
 rm -f /etc/nginx/sites-enabled/default
+
+# ----------------------------------------------------------- log retention
+# The published privacy notice tells people access logs are kept
+# LOG_RETENTION_DAYS days (see /privacy#retention and
+# docs/data-protection.md). Ubuntu's nginx package happens to default to 14,
+# but a promise in a public notice must not rest on a distro default that an
+# upgrade or a different base image could change — so the whole file is
+# written here and rewritten on every configure run.
+#
+# It is one file for every /var/log/nginx/*.log rather than a drop-in for ours
+# alone: logrotate refuses a path that two configs both claim ("duplicate log
+# entry") and silently skips it, which would stop rotation altogether.
+log "access log retention (${LOG_RETENTION_DAYS} days)"
+cat >/etc/logrotate.d/nginx <<EOF
+/var/log/nginx/*.log {
+	daily
+	missingok
+	rotate ${LOG_RETENTION_DAYS}
+	compress
+	delaycompress
+	notifempty
+	create 0640 www-data adm
+	sharedscripts
+	prerotate
+		if [ -d /etc/logrotate.d/httpd-prerotate ]; then \\
+			run-parts /etc/logrotate.d/httpd-prerotate; \\
+		fi \\
+	endscript
+	postrotate
+		# Without the signal nginx keeps writing to the rotated inode and
+		# the new file stays empty.
+		if [ -f /var/run/nginx.pid ]; then \\
+			kill -USR1 \$(cat /var/run/nginx.pid); \\
+		fi \\
+	endscript
+}
+EOF
+chmod 644 /etc/logrotate.d/nginx
+# A file logrotate cannot parse stops rotation for every nginx log without
+# saying so, so fail the configure run instead of discovering it in a month.
+if ! logrotate --debug /etc/logrotate.d/nginx >/dev/null 2>&1; then
+  echo "logrotate rejected /etc/logrotate.d/nginx" >&2
+  logrotate --debug /etc/logrotate.d/nginx >&2 || true
+  exit 1
+fi
 
 # ---------------------------------------------------------------- goaccess
 log "GoAccess request dashboard on 127.0.0.1:${STATS_PORT}"

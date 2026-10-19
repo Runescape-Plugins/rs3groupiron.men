@@ -19,3 +19,6 @@ apps/api/tools/.cache-names/
 
 # Item icons fetched on demand from the renderer and held locally.
 apps/api/data/.icon-cache/
+docs/data-protection.md
+docs/plugin-listing.md
+docs/plugin-listing.html

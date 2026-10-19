@@ -52,6 +52,23 @@ and [`apps/api/README.md`](apps/api/README.md) for the delta formats.
 
 The plugin is unaffected by any of this — it only ever POSTs JSON.
 
+## Data protection
+
+The site publishes a privacy notice, terms of use and a cookie notice at
+`/privacy`, `/terms` and `/cookies`, written from
+`apps/web/src/lib/legal.ts`.
+
+Settings → Your data is the self-service end of it. A group can download
+everything it holds — as JSON, or as a ZIP that also carries the ledger, the
+achievement feed and the full XP history — and can erase the lot; the purge runs
+five days later and is cancellable until then.
+
+What those pages promise, which Jagex submission case applies, and the checklist
+to finish before submitting are all in
+**[`docs/data-protection.md`](docs/data-protection.md)**. Change a retention
+period, an endpoint or a security control and that file plus `legal.ts` have to
+change with it.
+
 ## Deploying
 
 The API deploys to your own server on push to `production`; the site deploys to

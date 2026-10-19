@@ -10,6 +10,7 @@ import { BrowsePage } from './pages/BrowsePage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
+import { LEGAL_PAGES } from './lib/legalIndex';
 
 // These three are worth splitting: they pull in GroupMapShell (~385 KB) and
 // GraphsPanel (~366 KB), neither of which a first-time visitor needs.
@@ -23,6 +24,13 @@ const PublicGroupPage = lazy(() =>
   import('./pages/PublicGroupPage').then((m) => ({ default: m.PublicGroupPage })),
 );
 
+// Split for the same reason: the three policies are ~30 KB of prose that a
+// first-time visitor has no use for. Only their titles ship eagerly, in
+// lib/legalIndex, so the footer and routes cost nothing.
+const LegalPage = lazy(() =>
+  import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })),
+);
+
 const FALLBACK = <GroupSkeleton />;
 
 export default function App() {
@@ -34,6 +42,9 @@ export default function App() {
           <Route path="get-started" element={<GetStartedPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="discover" element={<BrowsePage />} />
+          {LEGAL_PAGES.map((page) => (
+            <Route key={page.slug} path={page.slug} element={<LegalPage slug={page.slug} />} />
+          ))}
           <Route path="demo" element={<DemoPage />} />
           <Route path="group" element={<GroupPage />} />
           {/* Somebody else's public group: the name is in the path because the

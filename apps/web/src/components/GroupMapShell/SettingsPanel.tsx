@@ -1,19 +1,27 @@
 import { useMemo, useState } from 'react';
 import {
   addGroupMember,
+  cancelGroupDeletion,
   deleteGroupMember,
   DEMO_GROUP,
+  downloadGroupArchive,
+  downloadGroupData,
+  requestGroupDeletion,
   updateGroupSettings,
   updateMemberProfile,
+  type GroupDeletion,
   type GroupMode,
   type GroupShares,
   type GroupVisibility,
 } from '../../api/groupClient';
 import { MIN_SLOTS, SITE_URL } from '../../lib/constants';
+import { errorMessage } from '../../lib/errors';
 import type { PlayerView } from '../../lib/items';
 import { useAsyncAction } from '../../hooks/useAsyncAction';
 import { AddMemberModal } from './AddMemberModal';
 import { AppearanceSection, GroupModeSection } from './AppearanceSection';
+import { DataSection } from './DataSection';
+import { DeleteGroupModal } from './DeleteGroupModal';
 import type { LayoutDir, ThemePref } from '../../lib/uiPrefs';
 import { Banner } from './PanelChrome';
 import { PlusIcon } from './icons';
@@ -37,6 +45,7 @@ type SettingsPanelProps = {
   groupMode: GroupMode;
   visibility: GroupVisibility;
   shares: GroupShares;
+  deletion: GroupDeletion | null;
   panelOpacity: number;
   onPanelOpacityChange: (value: number) => void;
   onChanged: () => void;
@@ -64,6 +73,7 @@ export function SettingsPanel({
   groupMode,
   visibility,
   shares,
+  deletion,
   panelOpacity,
   onPanelOpacityChange,
   onChanged,
@@ -79,6 +89,8 @@ export function SettingsPanel({
 }: SettingsPanelProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [removeName, setRemoveName] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [downloading, setDownloading] = useState<'data' | 'archive' | null>(null);
   const { isBusy, message, error, setMessage, setError, run } = useAsyncAction();
 
   // No token means this is the public demo, which the server serves read-only.
@@ -90,6 +102,33 @@ export function SettingsPanel({
     () => [...players].sort((a, b) => a.name.localeCompare(b.name)),
     [players],
   );
+
+  // Deliberately not routed through `save`: a download changes nothing, so
+  // there is no point refreshing the group afterwards, and its own busy flag
+  // keeps the rest of the panel usable while a big archive builds.
+  function download(kind: 'data' | 'archive') {
+    if (readOnly) {
+      setMessage(null);
+      setError(READ_ONLY_NOTICE);
+      return;
+    }
+    setError(null);
+    setMessage(null);
+    setDownloading(kind);
+    void (async () => {
+      try {
+        const filename =
+          kind === 'archive'
+            ? await downloadGroupArchive(groupName, groupToken)
+            : await downloadGroupData(groupName, groupToken);
+        setMessage(`Downloaded ${filename}`);
+      } catch (err) {
+        setError(errorMessage(err, 'Could not build the download'));
+      } finally {
+        setDownloading(null);
+      }
+    })();
+  }
 
   function save(key: string, action: () => Promise<void>) {
     if (readOnly) {
@@ -254,6 +293,29 @@ export function SettingsPanel({
         }
       />
 
+      <DataSection
+        deletion={deletion}
+        busy={isBusy}
+        readOnly={readOnly}
+        downloading={downloading}
+        onDownloadData={() => download('data')}
+        onDownloadArchive={() => download('archive')}
+        onDelete={() => {
+          if (readOnly) {
+            setMessage(null);
+            setError(READ_ONLY_NOTICE);
+            return;
+          }
+          setDeleteOpen(true);
+        }}
+        onCancelDelete={() =>
+          save('cancel-deletion', async () => {
+            await cancelGroupDeletion(groupName, groupToken);
+            setMessage('Deletion cancelled — nothing has been removed');
+          })
+        }
+      />
+
       {addOpen && (
         <AddMemberModal
           busy={isBusy}
@@ -266,6 +328,25 @@ export function SettingsPanel({
               setMessage(`Added ${member.name}`);
             });
           }}
+        />
+      )}
+
+      {deleteOpen && (
+        <DeleteGroupModal
+          groupName={groupName}
+          busy={isBusy}
+          onClose={() => setDeleteOpen(false)}
+          onConfirm={(confirm) =>
+            save('request-deletion', async () => {
+              const result = await requestGroupDeletion(groupName, groupToken, confirm);
+              setDeleteOpen(false);
+              setMessage(
+                result.delete_after
+                  ? `Deletion scheduled for ${new Date(result.delete_after).toLocaleString()}. Cancel any time before then.`
+                  : 'Deletion scheduled',
+              );
+            })
+          }
         />
       )}
 

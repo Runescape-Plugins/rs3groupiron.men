@@ -11,21 +11,25 @@ import {
   Post,
   Put,
   Query,
+  Res,
   ServiceUnavailableException,
   Sse,
   UseGuards,
 } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import type { Response } from 'express';
 import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { allowDevReset } from '../config/env';
 import { GroupAccessService, visibleChangeKind } from './group-access.service';
 import { GroupEventsService } from './group-events.service';
+import { GroupExportService } from './group-export.service';
 import { GroupsSeedService } from './groups-seed.service';
 import { redactWireEntries, type WireEntry } from './group-wire';
 import {
   AddMemberBody,
+  ConfirmGroupDeletionBody,
   CreateAchievementBody,
   CreateGroupBody,
   DropRulesBody,
@@ -44,6 +48,25 @@ import {
   SetMemberOnlineBody,
 } from './group.types';
 import { GroupsService } from './groups.service';
+
+/**
+ * A group name may hold spaces and non-ASCII, neither of which belongs in a
+ * download filename, so the stem is reduced to a safe slug.
+ */
+function exportBasename(groupName: string): string {
+  const slug = groupName
+    .trim()
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
+  const day = new Date().toISOString().slice(0, 10);
+  return `rs3-group-ironman-${slug || 'group'}-${day}`;
+}
+
+/** `filename` is ASCII-only by construction, so no RFC 5987 form is needed. */
+function contentDisposition(filename: string): string {
+  return `attachment; filename="${filename}"`;
+}
 
 /**
  * Unauthenticated routes only — rate limited. The authed
@@ -112,6 +135,7 @@ export class GroupsAuthedController {
     private readonly groups: GroupsService,
     private readonly access: GroupAccessService,
     private readonly events$: GroupEventsService,
+    private readonly exporter: GroupExportService,
   ) {}
 
   @Get('am-i-logged-in')
@@ -438,6 +462,93 @@ export class GroupsAuthedController {
     @Body() body: MemberNameBody,
   ) {
     return this.groups.deleteGroupMember(groupName, authorization, body);
+  }
+
+  /**
+   * Everything we hold about the group, as one JSON document. The unbounded
+   * series (XP samples, ledger, feed) and the screenshots are not in here —
+   * `export.zip` is what adds those.
+   */
+  @Get('export')
+  @Header('Content-Type', 'application/json; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 6, ttl: 60000 } })
+  async exportJson(
+    @Param('groupName') groupName: string,
+    @Headers('authorization') authorization: string | undefined,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const group = await this.access.write(groupName, authorization);
+    const state = await this.exporter.buildStateDocument(group.name);
+    if (!state) throw new NotFoundException('Group not found');
+    res.setHeader(
+      'Content-Disposition',
+      contentDisposition(`${exportBasename(group.name)}.json`),
+    );
+    return state.document;
+  }
+
+  /**
+   * The same document plus the full time series and every uploaded screenshot,
+   * streamed as a ZIP so a group with hundreds of images never has to be held
+   * in memory.
+   *
+   * Headers go out before the body is built, so a mid-stream failure can only
+   * truncate the download. The archive is written with no `Content-Length` for
+   * the same reason: its size is not known until the last entry is in.
+   */
+  // The guard runs before auth, so a rejected request spends budget too. The
+  // limit is sized for that: enough that a retry after a failed download is
+  // never blocked, few enough that the R2 reads cannot be used as an amplifier.
+  @Get('export.zip')
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 5, ttl: 300000 } })
+  async exportZip(
+    @Param('groupName') groupName: string,
+    @Headers('authorization') authorization: string | undefined,
+    @Res() res: Response,
+  ) {
+    const group = await this.access.write(groupName, authorization);
+    const state = await this.exporter.buildStateDocument(group.name);
+    if (!state) throw new NotFoundException('Group not found');
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader(
+      'Content-Disposition',
+      contentDisposition(`${exportBasename(group.name)}.zip`),
+    );
+    // nginx would otherwise buffer the whole archive before forwarding a byte.
+    res.setHeader('X-Accel-Buffering', 'no');
+
+    await this.exporter.writeArchive(res, group.name, state);
+    res.end();
+  }
+
+  /**
+   * Erasure request for everything this group holds. Takes the group name and
+   * token again in the body on top of the usual header, so a stolen session or
+   * a stray click cannot start it.
+   */
+  @Post('request-deletion')
+  @HttpCode(200)
+  requestDeletion(
+    @Param('groupName') groupName: string,
+    @Headers('authorization') authorization: string | undefined,
+    @Body() body: ConfirmGroupDeletionBody,
+  ) {
+    return this.groups.requestGroupDeletion(groupName, authorization, body);
+  }
+
+  /** Calls off a pending erasure. Safe direction, so the token alone is enough. */
+  @Post('cancel-deletion')
+  @HttpCode(200)
+  cancelDeletion(
+    @Param('groupName') groupName: string,
+    @Headers('authorization') authorization: string | undefined,
+  ) {
+    return this.groups.cancelGroupDeletion(groupName, authorization);
   }
 
   @Put('rename-group-member')

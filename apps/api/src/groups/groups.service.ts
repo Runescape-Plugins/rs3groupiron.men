@@ -41,6 +41,11 @@ import {
   parseLedgerLimit,
 } from './bank-ledger';
 import {
+  confirmationMatches,
+  deletionDueAt,
+  deletionStatus,
+} from './group-deletion';
+import {
   GroupAccessService,
   groupNameKey,
   isPublicGroup,
@@ -84,6 +89,7 @@ import {
 } from './group-wire';
 import {
   AddMemberBody,
+  ConfirmGroupDeletionBody,
   CreateAchievementBody,
   CreateGroupBody,
   DropRulesBody,
@@ -345,7 +351,49 @@ export class GroupsService {
       // Optional rather than asserted: the client treats a missing date as "no
       // lower bound", which beats a 500 if a read ever lands without one.
       created_at: group.createdAt?.toISOString(),
+      ...(token ? { deletion: deletionStatus(group) } : {}),
     };
+  }
+
+  async requestGroupDeletion(
+    groupName: string,
+    token: string | undefined,
+    body: ConfirmGroupDeletionBody,
+  ) {
+    const group = await this.access.write(groupName, token);
+    if (!confirmationMatches(group, body)) {
+      throw new BadRequestException(
+        'The group name and token must match this group exactly',
+      );
+    }
+    // Re-requesting must not push the date back, or a stuck client could keep
+    // the data alive indefinitely.
+    if (group.deleteAfter) {
+      return { ok: true, ...deletionStatus(group) };
+    }
+
+    const now = new Date();
+    const updated = await this.prisma.group.update({
+      where: { id: group.id },
+      data: { deletionRequestedAt: now, deleteAfter: deletionDueAt(now) },
+      select: { deletionRequestedAt: true, deleteAfter: true },
+    });
+    this.notifyChanged(group.id, 'settings');
+    return { ok: true, ...deletionStatus(updated) };
+  }
+
+  async cancelGroupDeletion(groupName: string, token: string | undefined) {
+    const group = await this.access.write(groupName, token);
+    if (!group.deleteAfter) {
+      return { ok: true, ...deletionStatus(group) };
+    }
+    const updated = await this.prisma.group.update({
+      where: { id: group.id },
+      data: { deletionRequestedAt: null, deleteAfter: null },
+      select: { deletionRequestedAt: true, deleteAfter: true },
+    });
+    this.notifyChanged(group.id, 'settings');
+    return { ok: true, ...deletionStatus(updated) };
   }
 
   async getGroupData(

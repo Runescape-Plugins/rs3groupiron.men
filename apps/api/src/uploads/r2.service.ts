@@ -1,5 +1,11 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'node:crypto';
 
@@ -167,5 +173,65 @@ export class R2Service {
       expires_in: UPLOAD_URL_TTL_SECONDS,
       max_bytes: uploadMaxBytes(),
     };
+  }
+
+  /**
+   * The storage key behind a stored `image_url`, or null when the URL is not on
+   * our bucket's public base. Achievement writes already restrict image_url to
+   * that origin, so a mismatch means an older row or a changed CDN domain.
+   */
+  keyForPublicUrl(url: string): string | null {
+    const config = readR2Config();
+    if (!config) return null;
+    const prefix = `${config.publicBaseUrl}/`;
+    if (!url.startsWith(prefix)) return null;
+    const key = decodeURIComponent(url.slice(prefix.length));
+    if (!key || key.includes('..')) return null;
+    return key;
+  }
+
+  /** Object bytes, or null when it is missing or R2 is not configured. */
+  async readObject(key: string): Promise<Buffer | null> {
+    const config = readR2Config();
+    if (!config) return null;
+    const result = await this.s3(config).send(
+      new GetObjectCommand({ Bucket: config.bucket, Key: key }),
+    );
+    if (!result.Body) return null;
+    return Buffer.from(await result.Body.transformToByteArray());
+  }
+
+  async deleteGroupImages(groupId: string): Promise<number> {
+    const config = readR2Config();
+    if (!config) return 0;
+    const client = this.s3(config);
+    const prefix = `achievements/${groupId}/`;
+    let token: string | undefined;
+    let deleted = 0;
+
+    do {
+      const listed = await client.send(
+        new ListObjectsV2Command({
+          Bucket: config.bucket,
+          Prefix: prefix,
+          ContinuationToken: token,
+        }),
+      );
+      const keys = (listed.Contents ?? []).flatMap((object) =>
+        object.Key ? [{ Key: object.Key }] : [],
+      );
+      if (keys.length > 0) {
+        await client.send(
+          new DeleteObjectsCommand({
+            Bucket: config.bucket,
+            Delete: { Objects: keys, Quiet: true },
+          }),
+        );
+        deleted += keys.length;
+      }
+      token = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+    } while (token);
+
+    return deleted;
   }
 }

@@ -28,6 +28,8 @@ model Group {
   publicAchievements Boolean @default(true) @map("public_achievements")
   viewsTotal  Int              @default(0) @map("views_total")
   createdAt   DateTime         @default(now()) @map("created_at")
+  deletionRequestedAt DateTime? @map("deletion_requested_at")
+  deleteAfter         DateTime? @map("delete_after")
   members     Member[]
   viewDays    GroupViewDay[]
   /// Group-owned inventories, i.e. the shared bank.
@@ -37,6 +39,7 @@ model Group {
   rareItems   GroupRareItem[]
 
   @@index([visibility, nameKey])
+  @@index([deleteAfter])
   @@map("groups")
 }
 

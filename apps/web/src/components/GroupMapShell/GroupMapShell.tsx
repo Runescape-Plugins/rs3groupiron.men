@@ -521,6 +521,7 @@ export function GroupMapShell({
               groupMode={groupMode}
               visibility={visibility}
               shares={shares}
+              deletion={info?.deletion ?? null}
               panelOpacity={prefs.pa}
               onPanelOpacityChange={(value) => setPref('pa', value)}
               onThemeChange={(next) => setPref('themePref', next)}

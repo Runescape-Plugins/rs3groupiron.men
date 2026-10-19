@@ -8,6 +8,7 @@ import {
 } from '../api/groupClient';
 import { AuthError, AuthHeader, CountedField } from '../components/AuthFields';
 import { DiscoverLink } from '../components/DiscoverLink';
+import { LegalFooter } from '../components/LegalFooter';
 import { MarketingLayout, useFormTheme } from '../components/MarketingLayout';
 import { SetupVideoFrame } from '../components/SetupVideoFrame';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -250,9 +251,18 @@ export function GetStartedPage() {
           </form>
         </div>
 
+        <p className="hero-consent">
+          By creating a group you accept our <Link to="/terms">terms of use</Link> and{' '}
+          <Link to="/privacy">privacy notice</Link>, and you confirm that every player you
+          added has agreed to their in-game data being tracked. Any member can stop sharing
+          their location, and you can erase everything from Settings at any time.
+        </p>
+
         <p className="hero-foot">
           Already have a group? <Link to="/login">Log in</Link>
         </p>
+
+        <LegalFooter />
       </div>
     </MarketingLayout>
   );

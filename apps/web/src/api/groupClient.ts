@@ -1,3 +1,4 @@
+import { clickDownload } from '../lib/download';
 import type { WireEntry } from '../lib/items';
 
 const DEMO_GROUP = 'Demo Group';
@@ -15,6 +16,17 @@ export type GroupShares = {
   achievements: boolean;
 };
 
+/**
+ * A pending erasure request. Only returned to a caller that sent the token;
+ * `pending` false means nothing is scheduled.
+ */
+export type GroupDeletion = {
+  pending: boolean;
+  requested_at: string | null;
+  delete_after: string | null;
+  grace_days: number;
+};
+
 export type GroupInfo = {
   ok: boolean;
   name: string;
@@ -28,6 +40,8 @@ export type GroupInfo = {
   visibility?: GroupVisibility;
   shares?: GroupShares;
   visible?: GroupShares;
+  /** Absent on a tokenless read, and on older API builds. */
+  deletion?: GroupDeletion;
 };
 
 export type PublicGroup = {
@@ -575,6 +589,81 @@ export async function updateGroupSettings(
     token,
     method: 'PUT',
     body: JSON.stringify(body),
+  });
+}
+
+/**
+ * Downloads a group's own data. Both endpoints need the token in a header, so
+ * neither can be a plain link — the response is pulled as a blob and handed to
+ * the browser's download path.
+ *
+ * The ZIP is streamed by the server with no Content-Length, so there is no
+ * progress to report; it is held in memory here only for as long as the save
+ * dialog takes.
+ */
+async function downloadExport(
+  groupName: string,
+  token: string,
+  endpoint: 'export' | 'export.zip',
+): Promise<string> {
+  const res = await fetch(groupPath(groupName, endpoint), {
+    headers: { Authorization: token },
+  });
+  if (!res.ok) throw new Error(await parseErrorMessage(res));
+  const blob = await res.blob();
+  const href = URL.createObjectURL(blob);
+  try {
+    const filename =
+      filenameFromDisposition(res.headers.get('Content-Disposition')) ??
+      `rs3-group-ironman-export.${endpoint === 'export' ? 'json' : 'zip'}`;
+    clickDownload(href, filename);
+    return filename;
+  } finally {
+    // Revoking immediately would race the click on Safari, which reads the
+    // object URL after the handler returns.
+    setTimeout(() => URL.revokeObjectURL(href), 10_000);
+  }
+}
+
+function filenameFromDisposition(header: string | null): string | null {
+  const match = header?.match(/filename="([^"]+)"/);
+  return match?.[1] ?? null;
+}
+
+export function downloadGroupData(groupName: string, token: string) {
+  return downloadExport(groupName, token, 'export');
+}
+
+export function downloadGroupArchive(groupName: string, token: string) {
+  return downloadExport(groupName, token, 'export.zip');
+}
+
+type DeletionResult = GroupDeletion & { ok: boolean };
+
+/**
+ * Schedules erasure of everything this group holds. The name and token are
+ * retyped into the body on top of the header the request already carries, so a
+ * saved session alone cannot start it.
+ */
+export async function requestGroupDeletion(
+  groupName: string,
+  token: string,
+  confirm: { confirm_name: string; confirm_token: string },
+): Promise<DeletionResult> {
+  return api(groupPath(groupName, 'request-deletion'), {
+    token,
+    method: 'POST',
+    body: JSON.stringify(confirm),
+  });
+}
+
+export async function cancelGroupDeletion(
+  groupName: string,
+  token: string,
+): Promise<DeletionResult> {
+  return api(groupPath(groupName, 'cancel-deletion'), {
+    token,
+    method: 'POST',
   });
 }
 
