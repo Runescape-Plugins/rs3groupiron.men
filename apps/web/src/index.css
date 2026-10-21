@@ -223,6 +223,55 @@ body {
   min-height: 0;
 }
 
+/*
+ * Bare loading screen for routes where a skeleton would be a lie about what
+ * is coming — currently only a public group, which may turn out to be private.
+ * It lives in the entry CSS because it is shown *while* a route's own
+ * stylesheet is still downloading; anywhere else it would render unstyled.
+ */
+.pageload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  background: var(--bg);
+}
+
+/* Delayed fade, so a route that resolves quickly never flashes a spinner. */
+.pageload-ring {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(138, 148, 158, 0.25);
+  border-top-color: var(--gold);
+  animation:
+    pageload-spin 0.8s linear infinite,
+    pageload-in 0.2s ease 0.12s both;
+}
+
+@keyframes pageload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pageload-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pageload-ring {
+    animation:
+      pageload-spin 2.4s linear infinite,
+      pageload-in 0.2s ease 0.12s both;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
