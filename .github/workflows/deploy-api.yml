@@ -103,6 +103,7 @@ jobs:
           SEED_DEMO: ${{ secrets.SEED_DEMO }}
           ALLOW_DEV_RESET: ${{ secrets.ALLOW_DEV_RESET }}
           DEMO_WRITABLE: ${{ secrets.DEMO_WRITABLE }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
           UPLOAD_MAX_BYTES: ${{ secrets.UPLOAD_MAX_BYTES }}
           GAMEVALS_DIR: ${{ secrets.GAMEVALS_DIR }}
           QUESTS_FILE: ${{ secrets.QUESTS_FILE }}

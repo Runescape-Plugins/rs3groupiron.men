@@ -41,6 +41,13 @@ export function seedDemo(): boolean {
   return process.env.SEED_DEMO === '1';
 }
 
+export const MIN_ADMIN_TOKEN_LENGTH = 24;
+
+export function adminToken(): string | null {
+  const value = process.env.ADMIN_TOKEN?.trim();
+  return value && value.length >= MIN_ADMIN_TOKEN_LENGTH ? value : null;
+}
+
 export class EnvError extends Error {
   constructor(problems: string[]) {
     super(
@@ -99,6 +106,13 @@ export function collectEnvProblems(env: NodeJS.ProcessEnv): string[] {
   // carrying this flag is a mistake worth refusing to start on.
   if (production && env.ALLOW_DEV_RESET === '1') {
     problems.push('ALLOW_DEV_RESET=1 is not allowed when NODE_ENV=production');
+  }
+
+  const admin = env.ADMIN_TOKEN?.trim();
+  if (admin && admin.length < MIN_ADMIN_TOKEN_LENGTH) {
+    problems.push(
+      `ADMIN_TOKEN must be at least ${MIN_ADMIN_TOKEN_LENGTH} characters (got ${admin.length})`,
+    );
   }
 
   return problems;

@@ -24,8 +24,15 @@ import { XpHistoryService } from './xp-history.service';
     XpHistoryService,
     GroupEventsService,
   ],
-  // GroupAccessService rather than GroupsService: the uploads module needs a
-  // permission check, not the write paths.
-  exports: [GroupAccessService, GroupEventsService],
+  // The uploads module takes GroupAccessService alone: it needs a permission
+  // check, not the write paths. The admin module is the one consumer that does
+  // write, so it gets GroupsService (for the change broadcast) and
+  // GroupPurgeService (to erase a group on demand).
+  exports: [
+    GroupAccessService,
+    GroupEventsService,
+    GroupsService,
+    GroupPurgeService,
+  ],
 })
 export class GroupsModule {}

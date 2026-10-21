@@ -31,6 +31,12 @@ const LegalPage = lazy(() =>
   import('./pages/LegalPage').then((m) => ({ default: m.LegalPage })),
 );
 
+// Operator-only, reached by typing the path, so it must never ride in the entry
+// chunk that every visitor downloads.
+const AdminPage = lazy(() =>
+  import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })),
+);
+
 const FALLBACK = <GroupSkeleton />;
 
 export default function App() {
@@ -45,6 +51,7 @@ export default function App() {
           {LEGAL_PAGES.map((page) => (
             <Route key={page.slug} path={page.slug} element={<LegalPage slug={page.slug} />} />
           ))}
+          <Route path="admin" element={<AdminPage />} />
           <Route path="demo" element={<DemoPage />} />
           <Route path="group" element={<GroupPage />} />
           {/* Somebody else's public group: the name is in the path because the

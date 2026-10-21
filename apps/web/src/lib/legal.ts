@@ -218,6 +218,10 @@ const PRIVACY: LegalDoc = {
         },
         {
           kind: 'p',
+          text: 'We run the service ourselves, so we can reach the database to keep it working. There is an operator-only admin page behind its own credential, separate from any group token, which shows group totals and a list of groups — name, member names, member count, view count, created date and last activity — and which can remove a group. It does not reveal any group token, and it is used for running the service, not for reading group data.',
+        },
+        {
+          kind: 'p',
           text: 'We do not sell your personal data, we share none of it with advertisers or data brokers, and we do not send it to Jagex. We will disclose data if we are legally required to, and we will tell you unless we are prohibited from doing so.',
         },
       ],
@@ -285,7 +289,7 @@ const PRIVACY: LegalDoc = {
         },
         {
           kind: 'p',
-          text: 'There is no inactivity sweep: we do not delete a group just because nobody has played for a while. Deletion happens when you ask for it.',
+          text: 'There is no inactivity sweep: we do not delete a group just because nobody has played for a while. Deletion normally happens when you ask for it. We can also remove a group ourselves where the terms of use allow it — for abuse, or on a request we have verified another way — either straight away or on the same five-day timer.',
         },
       ],
     },
@@ -356,6 +360,7 @@ const PRIVACY: LegalDoc = {
             'The site sends a strict Content-Security-Policy, HSTS and related hardening headers; the API restricts cross-origin access to our own domains.',
             'Backups go to a private bucket, and the backup script refuses to run if it is ever pointed at a publicly readable one.',
             'Public sharing is off by default, the live map is off by default even for public groups, and each member can opt out of location sharing individually.',
+            'The operator admin page does not exist unless we switch it on with a separate token of at least 24 characters, which is compared in constant time and rate limited. With it switched off, every admin route answers 404 as though it were not there.',
           ],
         },
         {

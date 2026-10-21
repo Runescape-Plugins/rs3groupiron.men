@@ -9,5 +9,6 @@ Allow: /discover
 Disallow: /group
 Disallow: /g/
 Disallow: /demo
+Disallow: /admin
 
 Sitemap: https://rs3groupiron.men/sitemap.xml

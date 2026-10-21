@@ -16,7 +16,7 @@ export type LegalPageMeta = {
   description: string;
 };
 
-export const LEGAL_UPDATED = '19 October 2026';
+export const LEGAL_UPDATED = '21 October 2026';
 
 export const LEGAL_CONTACT = {
   operator: 'Christian Harrison',

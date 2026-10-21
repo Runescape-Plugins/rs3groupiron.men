@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LiveStatsController } from './common/live-stats.controller';
@@ -26,6 +27,7 @@ import { UploadsModule } from './uploads/uploads.module';
     ItemsModule,
     GroupsModule,
     UploadsModule,
+    AdminModule,
   ],
   controllers: [AppController, LiveStatsController],
   providers: [

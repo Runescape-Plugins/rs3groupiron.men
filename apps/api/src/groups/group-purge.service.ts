@@ -49,7 +49,7 @@ export class GroupPurgeService implements OnModuleInit, OnModuleDestroy {
       let purged = 0;
       for (const group of due) {
         try {
-          await this.purge(group.id);
+          await this.purgeGroup(group.id);
           purged += 1;
           this.logger.log(`purged group "${group.name}" (${group.id})`);
         } catch (err) {
@@ -65,7 +65,7 @@ export class GroupPurgeService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async purge(groupId: string) {
+  async purgeGroup(groupId: string) {
     // Most groups never upload a screenshot, so checking first keeps the usual
     // purge off the network entirely.
     const images = await this.prisma.achievement.count({

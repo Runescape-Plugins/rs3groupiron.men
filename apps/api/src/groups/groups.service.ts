@@ -231,7 +231,7 @@ export class GroupsService {
    * re-read. Member state travels in the delta itself, so that is the default
    * and costs a client nothing extra.
    */
-  private notifyChanged(groupId: string, ...kinds: GroupChangeKind[]) {
+  notifyChanged(groupId: string, ...kinds: GroupChangeKind[]) {
     const list = kinds.length > 0 ? kinds : (['members'] as GroupChangeKind[]);
     for (const kind of list) {
       this.changed.next({ groupId, kind });
