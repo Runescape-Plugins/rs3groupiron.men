@@ -40,10 +40,6 @@ const AdminPage = lazy(() =>
 
 const FALLBACK = <GroupSkeleton />;
 
-// A public group is the one route whose shape is not known until the access
-// check answers: it may turn out to be private, and a skeleton of a dashboard
-// that never arrives reads as a broken page. Its own boundary keeps the plain
-// spinner here without changing the fallback anywhere else.
 const PUBLIC_GROUP_FALLBACK = <PageLoading />;
 
 export default function App() {
