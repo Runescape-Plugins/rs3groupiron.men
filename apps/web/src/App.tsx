@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 // only bought a round trip the preload scanner could not see — i.e. a visible
 // "Loading…" on the landing page. They ship in the entry chunk instead.
 import { GroupSkeleton } from './components/GroupSkeleton';
+import { PageLoading } from './components/PageLoading';
 import { BrowsePage } from './pages/BrowsePage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { HomePage } from './pages/HomePage';
@@ -39,6 +40,8 @@ const AdminPage = lazy(() =>
 
 const FALLBACK = <GroupSkeleton />;
 
+const PUBLIC_GROUP_FALLBACK = <PageLoading />;
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -56,7 +59,14 @@ export default function App() {
           <Route path="group" element={<GroupPage />} />
           {/* Somebody else's public group: the name is in the path because the
               shell owns the query string. */}
-          <Route path="g/:groupName" element={<PublicGroupPage />} />
+          <Route
+            path="g/:groupName"
+            element={
+              <Suspense fallback={PUBLIC_GROUP_FALLBACK}>
+                <PublicGroupPage />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

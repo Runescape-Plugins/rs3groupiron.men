@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { fetchGroupInfo, isAccessDenied, recordGroupView } from '../api/groupClient';
 import { GroupLocked } from '../components/GroupLocked';
 import { GroupMapShell } from '../components/GroupMapShell';
-import { GroupSkeleton } from '../components/GroupSkeleton';
+import { PageLoading } from '../components/PageLoading';
 import { errorMessage } from '../lib/errors';
 
 const counted = new Set<string>();
@@ -51,7 +51,7 @@ export function PublicGroupPage() {
     void recordGroupView(groupName);
   }, [groupName, access.state]);
 
-  if (access.state === 'checking') return <GroupSkeleton />;
+  if (access.state === 'checking') return <PageLoading />;
   if (access.state === 'open') {
     return <GroupMapShell groupName={groupName} groupToken="" initialTab="map" />;
   }
