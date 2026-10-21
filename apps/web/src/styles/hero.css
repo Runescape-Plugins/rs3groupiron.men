@@ -922,6 +922,90 @@
   }
 }
 
+/* ——— Private / missing group ——— */
+
+.glk-card {
+  max-width: 480px;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.glk-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--line2);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
+}
+
+.glk-detail {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--dim);
+  text-wrap: pretty;
+}
+
+.glk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.glk-btn {
+  display: inline-flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--line2);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.glk-btn:hover {
+  border-color: var(--gold);
+}
+
+.glk-btn--primary {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 28%, var(--surface2));
+}
+
+.glk-btn--primary:hover {
+  background: color-mix(in srgb, var(--gold) 38%, var(--surface2));
+}
+
+.glk-foot {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.glk-foot a {
+  color: var(--goldLink, var(--gold));
+}
+
+@media (max-width: 460px) {
+  .glk-btn {
+    flex-basis: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-stagger > *,
   .hero-bg-canvas {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchGroupInfo } from '../api/groupClient';
 import { AuthError, AuthHeader, CountedField } from '../components/AuthFields';
 import { DiscoverLink } from '../components/DiscoverLink';
@@ -18,7 +18,9 @@ export function LoginPage() {
   });
   const navigate = useNavigate();
   const formTheme = useFormTheme();
-  const [name, setName] = useState('');
+  const [params] = useSearchParams();
+  const prefilled = (params.get('name') ?? '').slice(0, MAX_NAME);
+  const [name, setName] = useState(prefilled);
   const [token, setToken] = useState('');
   const [showToken, setShowToken] = useState(false);
   const { isBusy, error, setError, run } = useAsyncAction('Could not log in');
@@ -68,7 +70,7 @@ export function LoginPage() {
               value={name}
               max={MAX_NAME}
               disabled={isBusy}
-              autoFocus
+              autoFocus={!prefilled}
               autoComplete="username"
               placeholder={`1–${MAX_NAME} characters`}
               onChange={setName}
@@ -80,6 +82,7 @@ export function LoginPage() {
               max={200}
               type={showToken ? 'text' : 'password'}
               disabled={isBusy}
+              autoFocus={Boolean(prefilled)}
               autoComplete="current-password"
               spellCheck={false}
               placeholder="Paste your group token"

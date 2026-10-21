@@ -131,6 +131,26 @@ async function parseErrorMessage(res: Response) {
   return message;
 }
 
+/**
+ * Carries the HTTP status alongside the server's message, so a caller can tell
+ * "you may not see this" from "the request failed". The API answers the same
+ * 401 for an unknown group and a wrong token on purpose, so `status` narrows it
+ * to "no access" and never to a reason.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
+export function isAccessDenied(err: unknown): boolean {
+  return err instanceof ApiError && (err.status === 401 || err.status === 403);
+}
+
 async function api<T>(path: string, { token, ...init }: ApiInit = {}): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -140,7 +160,7 @@ async function api<T>(path: string, { token, ...init }: ApiInit = {}): Promise<T
       ...(init.headers ?? {}),
     },
   });
-  if (!res.ok) throw new Error(await parseErrorMessage(res));
+  if (!res.ok) throw new ApiError(await parseErrorMessage(res), res.status);
   return (await res.json()) as T;
 }
 
@@ -208,8 +228,12 @@ export async function setMemberOnline(
 export async function fetchGroupInfo(
   groupName = DEMO_GROUP,
   token = '',
+  opts: { signal?: AbortSignal } = {},
 ): Promise<GroupInfo> {
-  return api(groupPath(groupName, 'am-i-logged-in'), { token });
+  return api(groupPath(groupName, 'am-i-logged-in'), {
+    token,
+    signal: opts.signal,
+  });
 }
 
 export async function fetchXpHistory(
